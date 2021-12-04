@@ -10,5 +10,9 @@ This project makes use of Qt MVC to get data from database and display in QTable
 ### if not conn.open("your username", "your password")
 ### self.model.setTable('your table name')
 
+# Screen shot
+![Alt "Image not available"](C:/Users/thuam/OneDrive/Pictures/Screenshots/Screenshot (6).png?raw=true "Optional Title")
+
+
 #### That's it.Run the application.
 #### Thanks!
