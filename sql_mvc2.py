@@ -23,14 +23,15 @@ from PyQt6.QtWidgets import *
 
 
 def createConnection():
-    conn = QSqlDatabase.addDatabase("QPSQL")
-    conn.setPort(5433)
+    conn = QSqlDatabase.addDatabase("QPSQL") # Replace with your database driver eg. QMYSQL, QSQLITE, QDB2 etc
+    # conn.setPort(5433) # not necessary if the database has a default port
     conn.setHostName("localhost")
-    # conn.setPassword("1234")
-    conn.setPort(5433)
-    # conn.setUserName("postgres")
-    conn.setDatabaseName("Student")
-    if not conn.open("postgres", "1234"):
+    # conn.setPassword("your password")
+    
+    # conn.setUserName("your username")
+    conn.setDatabaseName("your database name")
+    # NB: conn.setUserName("your username") and conn.setPassword("your password") are replaced by the line conn.open("your username", "your password") below
+    if not conn.open("your username", "your password"):
         QMessageBox.critical(QMessageBox(), "Error", "Error: %s" % conn.lastError().text())
         return False
     return True
@@ -76,7 +77,7 @@ class Student(QWidget):
 
         createConnection()
         self.model = QSqlTableModel(self)
-        self.model.setTable('details.school_details')
+        self.model.setTable('your table name')
         self.model.setEditStrategy(QSqlTableModel.EditStrategy.OnManualSubmit)
         self.model.select()
         self.model.setHeaderData(0, Qt.Orientation.Horizontal, "ID")
