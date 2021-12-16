@@ -17,21 +17,21 @@
 """
 import sys
 
+from PyQt6.QtGui import QIntValidator
 from PyQt6.QtSql import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
 
 def createConnection():
-    conn = QSqlDatabase.addDatabase("QPSQL") # Replace with your database driver eg. QMYSQL, QSQLITE, QDB2 etc
-    # conn.setPort(5433) # not necessary if the database has a default port
+    conn = QSqlDatabase.addDatabase("QPSQL")
+    conn.setPort(5433)
     conn.setHostName("localhost")
-    # conn.setPassword("your password")
-    
-    # conn.setUserName("your username")
-    conn.setDatabaseName("your database name")
-    # NB: conn.setUserName("your username") and conn.setPassword("your password") are replaced by the line conn.open("your username", "your password") below
-    if not conn.open("your username", "your password"):
+    # conn.setPassword("1234")
+    # conn.setPort(5433)
+    # conn.setUserName("postgres")
+    conn.setDatabaseName("Student")
+    if not conn.open("#", "#"):
         QMessageBox.critical(QMessageBox(), "Error", "Error: %s" % conn.lastError().text())
         return False
     return True
@@ -44,6 +44,16 @@ class Student(QWidget):
         self.resize(450, 450)
 
         self.lay = QVBoxLayout(self)
+
+        lay_ = QHBoxLayout(self)
+        txtSearch = QLineEdit()
+        txtSearch.setPlaceholderText("Search an item...")
+
+        lblSearch = QLabel()
+        lblSearch.setText("Search")
+
+        lay_.addWidget(lblSearch, alignment=Qt.AlignmentFlag.AlignLeft)
+        lay_.addWidget(txtSearch)
 
         lay3 = QVBoxLayout(self)
         lblName = QLabel()
@@ -66,6 +76,7 @@ class Student(QWidget):
 
         self.txtPwd = QLineEdit()
         self.txtPwd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.txtPwd.setValidator(QIntValidator())
         lay3.addWidget(self.txtPwd)
 
         lblEmail = QLabel()
@@ -77,7 +88,7 @@ class Student(QWidget):
 
         createConnection()
         self.model = QSqlTableModel(self)
-        self.model.setTable('your table name')
+        self.model.setTable('details.school_details')
         self.model.setEditStrategy(QSqlTableModel.EditStrategy.OnManualSubmit)
         self.model.select()
         self.model.setHeaderData(0, Qt.Orientation.Horizontal, "ID")
@@ -100,8 +111,19 @@ class Student(QWidget):
         # Set up the view
         self.view = QTableView()
         self.view.setSortingEnabled(True)
-        self.view.setModel(self.model)
+        self.view.setAlternatingRowColors(True)
+        # self.view.setModel(self.model)
+
+        self.proxy = QSortFilterProxyModel(self)
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.proxy.setFilterKeyColumn(1)
+        self.view.setModel(self.proxy)
+        txtSearch.textChanged.connect(self.proxy.setFilterRegularExpression)
+
         self.view.setColumnHidden(0, True)
+        self.view.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.view.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.view.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -109,7 +131,6 @@ class Student(QWidget):
 
         self.selection = self.view.selectionModel()
         self.selection.selectionChanged.connect(self.getSelectedRow)
-        # self.selection.selectionChanged()
 
         lay2 = QHBoxLayout(self)
 
@@ -129,6 +150,7 @@ class Student(QWidget):
         print(self.model.index(1, 2).data())
 
         self.lay.addLayout(lay3)
+        self.lay.addLayout(lay_)
         self.lay.addWidget(self.view)
         self.lay.addLayout(lay2)
         self.setLayout(self.lay)
@@ -150,7 +172,8 @@ class Student(QWidget):
 
     def updateData(self):
         if self.view.currentIndex().row() > -1:
-            record = self.model.record(self.view.currentIndex().row())
+            # record = self.model.rec
+            record = self.model.record()
             print(record.value('firstname'))
             record.setValue("firstname", self.txtName.text())
             record.setValue("lastname", self.txtSname.text())
@@ -185,6 +208,14 @@ class Student(QWidget):
         self.txtSname.setText(str(lname))
         self.txtPwd.setText(str(password))
         self.txtEmail.setText(str(email))
+
+    def searchTable(self):
+        try:
+
+            self.proxy.setSourceModel(self.model)
+            self.proxy.setFilterKeyColumn(2)
+        except Exception as e:
+            print("Error: " + str(e))
 
 
 if __name__ == '__main__':
